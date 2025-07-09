@@ -60,17 +60,17 @@
 			a critical part of this was calling the floor / ceiling functions on each coordinate. That way the bounding box would be as close to the
 			triangle as possible while still being easily iterable due to its now gridded nature.
 			<pre>
-		for (float x = min_x+0.5;x < max_x ; x++) {
-			for (float y = min_y + 0.5; y < max_y; y++) {
-				bool a = -(x-x0)*(y1-y0)+(y-y0)*(x1-x0) >= 0;
-				bool b = -(x-x1)*(y2-y1)+(y-y1)*(x2-x1) >= 0;
-				bool c = -(x-x2)*(y0-y2)+(y-y2)*(x0-x2) >= 0;
+for (float x = min_x+0.5;x < max_x ; x++) {
+	for (float y = min_y + 0.5; y < max_y; y++) {
+		bool a = -(x-x0)*(y1-y0)+(y-y0)*(x1-x0) >= 0;
+		bool b = -(x-x1)*(y2-y1)+(y-y1)*(x2-x1) >= 0;
+		bool c = -(x-x2)*(y0-y2)+(y-y2)*(x0-x2) >= 0;
 
-				if (a && b && c) {
-					sample_buffer[y*width+x] = col;
-				}
-			}
-		}</code></pre>
+		if (a && b && c) {
+			sample_buffer[y*width+x] = col;
+		}
+	}
+}</code></pre>
 		I iterate over the bounding box around the triangle and determine whether or not the middle of the point is inside
 		of the trianle by using the point in triangle method we were taught in lecture. If it is inside I fill
 		sample_buffer with its color, and since there is no sample rate yet I don't need to change the offset.
@@ -140,13 +140,13 @@
 			In code our barycentric coordinates would look like this.
 			<p>
 			<pre><code>
-			float a = -(offset_x-x0)*(y1-y0)+(offset_y-y0)*(x1-x0);
-			float b = -(offset_x-x1)*(y2-y1)+(offset_y-y1)*(x2-x1);
-			float c = -(offset_x-x2)*(y0-y2)+(offset_y-y2)*(x0-x2);
+	float a = -(offset_x-x0)*(y1-y0)+(offset_y-y0)*(x1-x0);
+	float b = -(offset_x-x1)*(y2-y1)+(offset_y-y1)*(x2-x1);
+	float c = -(offset_x-x2)*(y0-y2)+(offset_y-y2)*(x0-x2);
 
-			a = b/(-(x0-x1)*(y2-y1) + (y0-y1)*(x2-x1));
-			b = c/(-(x1-x2)*(y0-y2) + (y1-y2)*(x0-x2));
-			c = 1-a-b; // gamma
+	a = b/(-(x0-x1)*(y2-y1) + (y0-y1)*(x2-x1));
+	b = c/(-(x1-x2)*(y0-y2) + (y1-y2)*(x0-x2));
+	c = 1-a-b; // gamma
 			</code></pre>
 			</p>
 
