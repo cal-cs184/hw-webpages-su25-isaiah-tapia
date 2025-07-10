@@ -78,7 +78,7 @@ for (float x = min_x+0.5;x < max_x ; x++) {
 			<br>
 		<div style="text-align:center ">
 			<img src="task1.png" width="350px"/>
-			<figcaption>Caption goes here.</figcaption>
+			<figcaption>Zoomed in on a blue edge.</figcaption>
 		</div>
 <!--		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>-->
 <!--		<div style="display: flex; flex-direction: column; align-items: center;">-->
@@ -107,7 +107,82 @@ for (float x = min_x+0.5;x < max_x ; x++) {
 <!--		</div>-->
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+			<p>
+				Supersampling is useful as it allows us to decrease the number of jaggies and decrease aliasing by essentially
+				upscaling our source and then downscaling it back down.
+				My algoritihim for supersampling consisted first of similar code to as before except within the for loop
+				i'm iterating over the area of the pixel. If the center of this supersampled pixel is found to be within the
+				coordinates of our given triangle I fill the sample buffer with the color value of it.
+			</p>
+
+			<pre>
+				<code>
+float sr = pow(sample_rate,0.5);
+for (float super_x = x + 1 / sample_rate; super_x < x + 1; super_x += 1/sr){
+  for (float super_y = y + 1 / sample_rate; super_y < y + 1; super_y += 1/sr ) {
+    bool a = -(super_x-x0)*(y1-y0)+(super_y-y0)*(x1-x0) >= 0;
+	bool b = -(super_x-x1)*(y2-y1)+(super_y-y1)*(x2-x1) >= 0;
+	bool c = -(super_x-x2)*(y0-y2)+(super_y-y2)*(x0-x2) >= 0;
+
+	if (a && b && c) {
+	sample_buffer[(int)super_y *width*pow(sample_rate,0.5) + (int)super_x]=col;
+	}
+  }}</code>
+			</pre>
+			<p>
+				Afterwards when resolving to the sample buffer I took the average color of the pixels. This would let me
+				color in pixels with a lighter color even if the center of the larger pixel's center was not on
+				or within the bounds of the triangle. This would ensure that I fill in pixels not covered with the original
+				interpolation and would lead to edge antialiasing and would connect stray pixels to their larger
+				corresponding triangle, as we see with the pink triangle bellow.
+			</p>
+			<pre><code>
+    const int offset = pow(sample_rate, 0.5);
+    for (int x = 0; x < width; x+=1) {
+      for (int y = 0; y < height; y+=1) {
+        // Color col = sample_buffer[y * width*pow(sample_rate,0.5) + x];
+        // int count = 0;
+        Color col = Color(0,0,0);
+        for (int off_x = 0; off_x < offset;++off_x) {
+          for (int off_y = 0; off_y < offset;++off_y) {
+            col += sample_buffer[(y+off_y)*width*offset + (x+off_x)];
+          }
+        }
+        col.r = col.r/sample_rate;
+        col.g = col.g/sample_rate;
+        col.b = col.b/sample_rate;
+
+        for (int k = 0; k < 3; ++k) {
+          this->rgb_framebuffer_target[3 * (y * width + x) + k] = (&col.r)[k] * 255;
+        }
+      }
+    }
+				</code>
+			</pre>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="1%20tri.png" width="265px"/>
+				  <figcaption>One sample.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="four_tri.png" width="265px"/>
+				  <figcaption>Four Samples.</figcaption>
+				</td>
+				  <td style="text-align: center;">
+					  <img src="sixteen_tri.png" width="265px"/>
+					  <figcaption>Sixteen Samples.</figcaption>
+				  </td>
+			  </tr>
+			</table>
+		</div>
+	<p>
+		These show the antialiasing effect that the usage of the different triangles has, it also
+		connects the triangle to itself (fewer isolated pixel colors). A similar effect is seen with
+		the edges of the larger triangles. Their edges are softened, and we begin to see fewer jaggies.
+	</p>
 
 		<h2>Task 3: Transforms</h2>
 			I wanted my cube man to dance. This was my attempt at that they're moving their arms back and forth, as if
@@ -324,6 +399,7 @@ for (float x = min_x+0.5;x < max_x ; x++) {
 				is faster than other methods such as pixel sampling, and is memory efficient when compared to other methods.
 				Needing only to store 4/3 as much memory as the original texture uses.
 			</p>
+			<p style="font-size: 34px;">Thank you.</p>
 <!--		<h2>(Optional) Task 7: Extra Credit - Draw Something Creati ve!</h2>-->
 <!--		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.-->
 
