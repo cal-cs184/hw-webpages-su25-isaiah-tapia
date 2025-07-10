@@ -141,7 +141,7 @@ for (float x = min_x+0.5;x < max_x ; x++) {
 			and they distill from one another as they approach any vertex. This is due to me using the weights in the code to determine what color I should
 			draw the weights.
 			This is why if our any of our weight's values are not greater than or equal to zero our point is not located within the triangle.
-			In code our barycentric coordinates would look like the figure above.
+			In code our barycentric coordinates would look like the figure above. I got these from the lecture slides.
 			<p>
 			<pre><code>
 	float a = -(offset_x-x0)*(y1-y0)+(offset_y-y0)*(x1-x0); // alpha
@@ -209,7 +209,121 @@ for (float x = min_x+0.5;x < max_x ; x++) {
 			even at these higher sampling rates.</p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
+			Using mipmaps we can store successively lower resolution versions of our texture. Level sampling employs these
+			smaller versions of our texture in order to avoid aliasing from high frequency details especially if
+			what we want to render will be displayed far away from our point of view. These high frequency details become
+			more proportional by the level and thus appear less-aliased. If our level were a decimal value, we could do
+			trilinear interpolation to discover what the lerp of the bilinear interpolations between two different levels
+			would look like. Giving us a pixel with a value somewhere between that of the two texel points.
 
+			<div style="text-align:center ">
+				<img src="trilerp.png" width="350px"/>
+			</div>
+
+			<p>I calculated level sampling using</p>
+			<div style="text-align:center ">\( L = \max\left(\sqrt{\left(\frac{du}{dx}\right)^{2} + \left(\frac{dv}{dx}\right)^{2}}, \sqrt{\left(\frac{du}{dy}\right)^{2} + \left(\frac{dv}{dy}\right)^{2}}\right) \)</div>
+			<div style="text-align:center ">\( D = \log_{2}(L) \)</div>
+			<p>where D is the level. dudx and dvdx were found by taking the vectors difference multiplying it by the
+				width/height respectively and so on.
+			</p>
+
+			<pre>
+	Vector2D duvdx  = sp.p_dx_uv - sp.p_uv;
+	Vector2D duvdy = sp.p_dy_uv - sp.p_uv;
+
+	duvdx *= width;
+	duvdy *= height;
+
+	float l_x = pow(pow(sp.p_dx_uv.x,2)+pow(sp.p_dx_uv.y,2),0.5);
+	float l_y = pow(pow(sp.p_dy_uv.x,2)+pow(sp.p_dy_uv.y,2),0.5);
+	float l_max = max(l_x,l_y);
+	return log2(l_max);
+			</pre>
+
+			<p> Now that I have the appropriate level value I could employ which ever method I wished here are a few examples</p>
+
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="level0nn.png" width="300px"/>
+							<figcaption>^Level 0 Sample Nearest .</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="level_0_bilinear.png" width="300px"/>
+							<figcaption>^Level 0 Bilinear.</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="nlnn.png" width="300px"/>
+							<figcaption>Nearest level Sample nearest.</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="nlbi.png" width="300px"/>
+							<figcaption>Nearest level Bilinear.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Differences between the forms of bilinear appear more stark at points in the texture that
+				are mapped onto the screen space that are warpped and contain a continous pattern, such as this
+				wood grain. Changing the level of zoom also affects the amount of aliasing on of the image. Nearest
+				is an effective antialiasing method as it accounts for distance of the viewer when determining
+				what level to sample from.
+			</p>
+
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="zero-level-bi.png" width="300px"/>
+							<figcaption> Zero level Bilinear .</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="nearest-level-bilinear.png" width="300px"/>
+							<figcaption>Nearest level Bilinear.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<p>
+				Super sampling allows us to change the number of samples we make per pixel. This method is slow, particularly
+				using the common method I employed in this assignment, as it requires us traverse over all our texels times the
+				sample rate. We also need to use much more memory since we are essentially representing an upscaled image of
+				what we want to sample in order to downscale it. This is less memory efficient and increases relative to our
+				sample rate. Though it proves very well for antialiasing and reducing jaggies.
+			</p>
+
+			<p>
+				Pixel sampling allows for things like texture magnification, either using nearest or bilinear, bilinear will
+				give better results than nearest, bilinear has normal antialiasing while nearest is bad. Both methods are fast
+				requiring only 1 or 4 samples respectively. They don't require any more memory overhead than just the texture.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="zoomed_bi.png" width="300px"/>
+							<figcaption> Zero level bilinear zoomed .</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="zoomed_nn.png" width="300px"/>
+							<figcaption>Zero level nearest zoomed.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Level sampling uses the mipmaps to help with antialiasing. If you use an upscaled texture and map
+				it onto a space which appears far away you will see aliasing due to the high frequency details. Using a
+				mip maps allows you to store lower resolution textures that can be used for these further distances, helping
+				with antialiasing. It
+				is faster than other methods such as pixel sampling, and is memory efficient when compared to other methods.
+				Needing only to store 4/3 as much memory as the original texture uses.
+			</p>
 <!--		<h2>(Optional) Task 7: Extra Credit - Draw Something Creati ve!</h2>-->
 <!--		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.-->
 
