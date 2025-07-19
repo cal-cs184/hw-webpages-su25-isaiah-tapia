@@ -45,7 +45,7 @@
 
 		<br>
 		
-		Link to GitHub repository: <a href="https://github.com/cal-cs184/hw2-meshedit-0_0">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184/hw2-meshedit-0_0">https://github.com/cal-cs184/hw2-meshedit-0_0</a>
 
 		<figure>
 			<img src="ec-shaded-2 copy.png" alt="Bear" style="width:30%"/>
@@ -109,7 +109,21 @@
 		<h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
 
 		<h3>Part 3: Area-weighted vertex normals</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<div class="image-container">
+			<img src="part3-1.png" alt="Mesh before" width="350">
+			<figcaption>Mesh before</figcaption>
+				</div>
+
+				<div class="image-container">
+			<img src="part3-2.png" alt="Mesh after" width="350">
+				<figcaption>Mesh after computing area-weighted vertex normals</figcaption>
+		</div>
+		<br><br>We first instantiated an empty 3D vector, an empty list to be used for keeping track of our faces’ normal vectors multiplied by its area, and finally an area sum. Within the for loop we traversed to get the vertices of all the faces that use our initial vertex as a point. We update until we get back to our original vertice’s outgoing edge and updated by calling
+		<br> <ul><code> h = h->next()->next()->twin();</code> </ul>
+		<ul> Where h is 	<code>HalfedgeCIter h = halfedge();</code> </ul>
+		Within the for loop we take the cross product of the triangle’s points and the area of the triangle. We multiply these two together which is the normal of the triangle scaled by its area, storing it to our list. In the end we divide each of these normal vectors by the sum of our total area. This gives us the area weighted normalized vector of our vertex. 
+
+
 
 		<h3>Part 4: Edge flip</h3>
 		We initially based our implementation of edge flip based off of a diagram we created.
@@ -150,6 +164,23 @@
 			<img src="part5-4.png" alt="Flip and split combination" style="width:50%"/>
 			<figcaption>Mesh after combination of both edge splits and edge flips</figcaption>
 		</figure>
+		<p style="color: Yellow">
+				<b>Extra Credit (2 pts): Support edge splits for boundary edges.</b>
+		<figure>
+			<img src="part5-ec1.png" alt="Our diagram" style="width:50%"/>
+			<figcaption>Diagram explaining how we handled boundary edge splits</figcaption>
+		</figure>
+		We conceptualized the edge flip by assigning each vertex to a letter - vertices a,b,c and d. After that we named the halfedges and faces. Then according to the data structure we reassigned new half edges for each vertex, half edges and faces. After that we used the <code> setNeighbors(halfedge, twin, vertex, edge, face)</code> method to change the neighbors of whatever half edge called it to the parameters. <br><br>
+
+		<div class="image-container">
+			<img src="part5-ec2.png" alt="Mesh before" width="350">
+						<figcaption>Mesh before</figcaption>
+				</div>
+
+				<div class="image-container">
+			<img src="part5-ec3.png" alt="Split boundary" width="350">
+				<figcaption>Mesh after splitting multiple boundary edges</figcaption>
+		</div>
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
 		<p>For Loop subdivision, we followed a simple structured approach:</p>
@@ -334,16 +365,7 @@
 				<figcaption>After 1 round of loop subdivision with custom shader</figcaption>
 		</div>
 	 
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+		
 		</div>
 	</body>
 </html>
