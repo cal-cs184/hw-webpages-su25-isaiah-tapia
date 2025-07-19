@@ -40,7 +40,7 @@
 
 		<figure>
 			<img src="teapot.png" alt="Teapot" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
+			<figcaption>Utah Teapot</figcaption>
 		</figure>
 
 		<!--
@@ -96,9 +96,142 @@
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>For Loop subdivision, we followed a simple structured approach:</p>
+			<ol>
+				<li>Compute new positions for original vertices:
+					We used the Loop subdivision formula to calculate new positions and stored them in Vertex::newPosition:
+					<p>
+						<code>
+							<b>newPosition</b> = (1 &minus; n &middot; u) &middot; <b>original_position</b> + u &middot; &Sigma;(<b>each_original_neighbor</b>)
+						</code>
+					</p>
+					<p>
+						Where:
+					</p>
+					<ul>
+						<li>If <code>n &gt; 3</code>, then <code>u = <sup>3</sup>&frasl;<sub>(8n)</sub></code></li>
+						<li>If <code>n = 3</code>, then <code>u = <sup>3</sup>&frasl;<sub>16</sub></code></li>
+					</ul>
+					<p>
+					<b style="color: #ffffff">[EXTRA CREDIT]: </b> For boundary vertices, the new position is simply equal to the old position.
+				</li>
 
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
+				<li>
+					Compute edge midpoint positions:
+					For every edge, we computed the position for the new vertex that would be inserted when we split the edge. These positions were stored in Edge::newPosition.
+					[Formula] newPosition = 3/8 * (A + B) + 1/8 * (C + D)
+					Where A & B are opposite vertices, and C & D are opposite vertices
+					<p>
+						<b style="color: white">[EXTRA CREDIT]: </b> For boundary vertices, the new position is equal to 1/2 * (A + B) + 1/2 * (C + D), according to the paper "A Survey of Subdivision-Based Tools for Surface Modeling."
+					</p>
+				</li>
+
+				<li>
+					Then, we went through all the original edges and split them. This creates new vertices at the midpoints, and it was important to do this without messing up the mesh structure, so we marked which edges were "old" beforehand. Within our implementation of edgeSplit we set the new edges, the ones that connect to our new mid point, to be marked as new
+				</li>
+
+				<p>
+
+				</p>
+
+				<li>
+					After splitting, we flipped new edges that connected an old vertex to a new vertex. This step helps maintain the correct triangulation structure that Loop subdivision expects.
+				</li>
+
+				<p>
+
+				</p>
+
+				<li>
+					Finally, we went through all the vertices and assigned their new positions from step 1 or 2.
+				</li>
+			</ol>
+
+			<p>
+				Like with task 4 and 5, drawing diagrams and walking step by step through our program helped us with our debugging. In particular,
+				we found that by going back to the beginning of our method and walking through what our method is attempting to implement, and reviewing
+				the related methods we could effectively find a way to implement a better way to solve our program. Additionally, sometimes taking a step
+				back and taking a quick break allows you to look at the problem through a new lens and lends itself to more effective problem-solving.
+			</p>
+
+			<p>
+				<b>
+					Mesh Behavior
+				</b>
+				We noticed that sharp corners tend to soften out as you continue to upsample more and more times.This
+				effect is particualrly noticeable with the harsh corner of a cube.
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="part6-edge-soft-1.png" width="300px"/>
+							<figcaption>Cube after 1 iteration.</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="part6-edge-soft-2.png" width="300px"/>
+							<figcaption>Cube after 2 iterations.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Eventually we will diverge onto a shape which follows a structure appearing similarly to a sphere. Here
+				are the iterations
+			</p>
+
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="part6-cube-1.png" width="250px"/>
+							<figcaption>Simple Cube.</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="part6-cube-2.png" width="250px"/>
+							<figcaption>One time step.</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="part6-cube-3.png" width="250px"/>
+							<figcaption>Two time step.</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="part6-cube-4.png" width="250px"/>
+							<figcaption>Three time step.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<p>
+				Our cube will begin to develop some form of asymmetry if we continuously up-sample.
+				This is apparent in the table which shows our mesh sort of scewing its corners inwards
+				and outwards on the mesh depending on what iteration we are on. If we instead perform
+				some presampling, such as splitting each face of our mesh, we get a more symmetric appearing mesh.
+			</p>
+
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="part6-cube-prep.png" width="250px"/>
+							<figcaption>Simple Cube.</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="part6-cube-prep-2.png" width="250px"/>
+							<figcaption>One time step.</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<p style="color: white">
+				<b>TODO EXTRA CREDIT PORTION </b>
+			</p>
+
+
+			<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h2>Additional Notes (please remove)</h2>
