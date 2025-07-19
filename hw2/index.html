@@ -36,7 +36,7 @@
 	</head>
 	<body style="background-color:rgb(24,24,24);color: #ebdbb2;line-height: 1.5;">
 		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 2 Write-Up</h1>
+		<h1>CS184 Summer 2025 Homework 2 Write-Up</h1>
 		<div style="text-align: center;">Names: Meghai & Isaiah</div>
 
 		<br>
@@ -149,7 +149,7 @@
 		<br><br>We first instantiated an empty 3D vector, an empty list to be used for keeping track of our faces’ normal vectors multiplied by its area, and finally an area sum. Within the for loop we traversed to get the vertices of all the faces that use our initial vertex as a point. We update until we get back to our original vertice’s outgoing edge and updated by calling
 		<br> <ul><code> h = h->next()->next()->twin();</code> </ul>
 		<ul> Where h is 	<code>HalfedgeCIter h = halfedge();</code> </ul>
-		Within the for loop we take the cross product of the triangle’s points and the area of the triangle. We multiply these two together which is the normal of the triangle scaled by its area, storing it to our list. In the end we divide each of these normal vectors by the sum of our total area. This gives us the area weighted normalized vector of our vertex. 
+		Within the for loop we take the cross product of the triangle's points and the area of the triangle. We multiply these two together which is the normal of the triangle scaled by its area, storing it to our list. In the end we divide each of these normal vectors by the sum of our total area. This gives us the area weighted normalized vector of our vertex.
 
 
 
