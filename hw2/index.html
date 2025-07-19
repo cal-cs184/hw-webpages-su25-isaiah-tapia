@@ -56,42 +56,70 @@
 		-->
 
 		<h2>Overview</h2>
-		In this project we combined curve evaluation and surface modeling to explore fundamental techniques in geometry processing. Section 1 began with Bézier curves and surfaces using de Casteljau’s algorithm, which gave us an intuitive understanding of recursive interpolation in 1D and 2D. In section 2, we built a mesh editing system using the half-edge data structure, building operations such as edge flip, split, and loop subdivision for smooth upsampling. Loop sampling is used because unlike 2D images that lie on regular grids, where techniques like bilinear filtering easily perform upsampling, 3D meshes have vertices at irregular positions. This project ultimately allowed us to generate smooth, higher-resolution meshes while managing the complexity of mesh connectivity.
+		In this project we combined curve evaluation and surface modeling to explore fundamental techniques in geometry processing.
+			Section 1 began with Bezier curves and surfaces using de Casteljau's algorithm, which gave us an intuitive understanding
+			of recursive interpolation in 1D and 2D. In section 2, we built a mesh editing system using the half-edge data structure,
+			building operations such as edge flip, split, and loop subdivision for smooth upsampling.
+			Loop sampling is used because unlike 2D images that lie on regular grids, where techniques
+			like bilinear filtering easily perform upsampling, 3D meshes have vertices at irregular positions.
+			This project ultimately allowed us to generate smooth, higher-resolution meshes while managing the complexity of mesh connectivity.
 
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
 		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			de Casteljau's algorithm repeatedly linearly interpolates (lerps) to evaluate what the value of a point would
+			be at the given t value. This gives us our Bezier curve if we were to recursively calculate the values for t
+			between [0,1]. As we move our t value closer to zero the values we get weigh our intermediate control points to move closer towards
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+			<p>Each step of the evaluation of our original 6-point bezier curve from the original control points down to the final evaluated point / the ultimate Bezier curve:
+			</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="part1-1.png" width="300px"/>
+				  <figcaption>Step 1.</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="part1-2.png" width="300px"/>
+				  <figcaption>Step 2.</figcaption>
 				</td>
 			  </tr>
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="part1-3.png" width="300px"/>
+				  <figcaption>Step 3.</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="part1-4.png" width="300px"/>
+				  <figcaption>Step 4.</figcaption>
 				</td>
 			  </tr>
+				<tr>
+					<td style="text-align: center;">
+						<img src="part1-5.png" width="300px"/>
+						<figcaption>Step 5.</figcaption>
+					</td>
+					<td style="text-align: center;">
+						<img src="part1-6.png" width="300px"/>
+						<figcaption>Step 6.</figcaption>
+					</td>
+				</tr>
+
 			</table>
+			<td style="text-align: center;">
+				<img src="part1-7.png" width="300px"/>
+				<figcaption>Step 7.</figcaption>
+			</td>
 		</div>
+		<p>
+			Here is a screenshot of a slightly different Bezier curve with different control points.
+		</p>
+			<img src="part1-8.png" width="300px"/>
 
 		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau</h3>
-		Just like how de Casteljau’s algorithm recursively interpolates between control points to evaluate a point on a Bézier curve, we can extend this idea to evaluate a point on a Bézier surface. <br>
-		A Bézier surface is defined over a grid of control points (like a 2D array), with two parameters: u and v. We evaluate it in two stages:
+		Just like how de Casteljau's algorithm recursively interpolates between control points to evaluate a point on a Bezier curve, we can extend this idea to evaluate a point on a Bezier surface. <br>
+		A Bezier surface is defined over a grid of control points (like a 2D array), with two parameters: u and v. We evaluate it in two stages:
 		<ul>
 			<li>
 				First, for a fixed u, we apply the 1D de Casteljau algorithm along each row of control points. This gives us a new set of points, one per row.
