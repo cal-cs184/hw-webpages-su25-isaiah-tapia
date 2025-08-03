@@ -27,17 +27,16 @@
 	</head>
 	<body>
 		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 3 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<h1>CS184 Summer 2025 Homework 3 Write-Up</h1>
+		<div style="text-align: center;">Names: Isaiah Tapia & Meghai Choudhury </div>
 
 		<br>
 
 		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		<br>Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
 		
 		<figure>
-			<img src="cornell.png" alt="Cornell Boxes with Bunnies" style="width:70%"/>
-			<figcaption>You can add images with captions!</figcaption>
+			<img src="title.png" alt="Cornell Boxes with Bunnies: direct vs indirect" style="width:70%"/>
 		</figure>
 
 		<!--
@@ -45,46 +44,305 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		In this homework, we implemented a physically-based path tracer that supports both direct and global illumination. We started by generating camera rays and computing intersections with scene geometry, then used a bounding volume hierarchy (BVH) to speed up those checks.
+		<br> <br>
+		We explored two methods for direct lighting: uniform hemisphere sampling and importance sampling. The latter gave much cleaner results with fewer samples, especially around soft shadows. Adding global illumination with recursive ray bounces brought scenes to life with more realistic lighting, and we used Russian Roulette to balance quality and efficiency. Finally, adaptive sampling helped us reduce unnecessary work by stopping early when pixel values had already converged.
+		<br> <br>
+		Overall, we gained a deeper understanding of how light transport works and how each component of the pipeline contributes to producing realistic images.
+
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h3>Ray Generation and Primitive Intersection</h3>
+		<p>
+			Our code generates a ray by calculating the direction of our ray using creating a Vector3D with both fov’s (h and w)
+			<code>(2.0*x/y ) * tan(radians(h/vFov) / 2.0), z = -1</code>. We then normalize this vector and change it from camera
+			space to the world space. We then make a ray object where our origin is our camera position and our direction is
+			the normalized world space direction vector from earlier. We then set our rays min_t and max_t to nClip and fClip
+			respectively. Finally return the ray.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			</table>
-		</div>
+		<h3>Triangle Intersection Algorithm</h3>
+		<p>
+			For our implementation we used the Moller Trumbore intersection algorithm to determine whether or not a ray
+			intersected a triangle. In essence our implementation checked to see if our ray is intersecting the triangle,
+			the core components used to make this check was barycentric coordinates. We first create a point from the ray
+			onto our plane, then we leverage the fact that we are keeping track of each triangles’ points to then use
+			barycentric coordinates to determine if our ‘hitpoint’ is within the triangle.
+		</p>
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h2>Part 3: Direct Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		The two direct lighting functions, <code> estimate_direct_lighting_hemisphere</code> and <code>estimate_direct_lighting_importance</code> both try to figure out how much light hits a point on a surface, but go about it in different ways.
+		<br>		<br>
+
+		<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+		<figure style="margin: 0 10px; text-align: center;">
+			<img src="3.3.png" style="width: 100%;" />
+			<figcaption>Direct Lighting with Uniform Hemisphere Sampling: Bunny</figcaption>
+		</figure>
+		<figure style="margin: 0 10px; text-align: center;">
+			<img src="spheresH.png" style="width: 100%;" />
+			<figcaption>Direct Lighting with Uniform Hemisphere Sampling: Spheres</figcaption>
+		</figure>
+		</div>
+
+		<p>
+		The <code>estimate_direct_lighting_hemisphere</code> function samples directions randomly over the hemisphere above the surface.
+		For each sample direction, it traces a ray from the intersection point to see if it hits a light source. If it does, it calculates
+		how much light is coming from that direction using the BSDF, the emitted light from the hit surface, the cosine of the angle
+		between the direction and normal, and a constant pdf, averaging the contributions to estimate the direct lighting.
+		</p>
+
+		<p style="font-family: monospace; font-size: 1.1em;">
+		L<sub>sample</sub> = (f<sub>r</sub>(w<sub>out</sub>, w<sub>in</sub>) × L<sub>i</sub> × cosΘ) / pdf<br>
+		pdf = 1 / 2π
+		</p>
+
+		<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+		<figure style="margin: 0 10px; text-align: center;">
+			<img src="3.4.png" style="width: 100%;" />
+			<figcaption>Direct Lighting with Importance Sampling: Bunny</figcaption>
+		</figure>
+		<figure style="margin: 0 10px; text-align: center;">
+			<img src="spheres.png" style="width: 100%;" />
+			<figcaption>Direct Lighting with Importance Sampling: Spheres</figcaption>
+		</figure>
+		</div>
+
+		<p>
+		The <code>estimate_direct_lighting_importance</code> function samples directly from the lights on the scene.
+		Instead of sampling random directions, it asks each light where the light is coming from and how much of it
+		reaches the surface. For every sample, it checks whether the light is visible by shooting a shadow ray.
+		If the light isn’t blocked, it calculates the BSDF value and scales it by the incoming light, cosine of the angle,
+		and the sample’s pdf (same as in <code>estimate_direct_lighting_hemisphere</code>).
+		</p>
+
+		<p style="font-family: monospace; font-size: 1.1em;">
+		L<sub>sample</sub> = (f<sub>r</sub>(w<sub>out</sub>, w<sub>in</sub>) × L<sub>i</sub> × cosΘ) / pdf<br>
+		pdf = 1 / 2π
+		</p>
+
+		<p>
+		Focus on one particular scene with at least one area light and compare the noise levels in soft shadows when rendering with
+		1, 4, 16, and 64 light rays and with 1 sample per pixel using light sampling:
+		</p>
+
+		<!-- Image row -->
+		<div style="display: flex; justify-content: space-between; text-align: center;">
+		<figure style="width: 23%; margin: 0 1%;">
+			<img src="3-1.png" style="width: 100%;" alt="Image 3-1">
+		</figure>
+		<figure style="width: 23%; margin: 0 1%;">
+			<img src="3-2.png" style="width: 100%;" alt="Image 3-2">
+		</figure>
+		<figure style="width: 23%; margin: 0 1%;">
+			<img src="3-3.png" style="width: 100%;" alt="Image 3-3">
+		</figure>
+		<figure style="width: 23%; margin: 0 1%;">
+			<img src="3-4.png" style="width: 100%;" alt="Image 3-4">
+		</figure>
+		</div>
+
+		<!-- Captions for each image -->
+		<div style="display: flex; justify-content: space-between; text-align: center; margin-top: 10px;">
+		<div style="width: 23%; margin: 0 1%;">1 light ray: lots of noise in soft shadows</div>
+		<div style="width: 23%; margin: 0 1%;">4 light rays: noise slightly decreases</div>
+		<div style="width: 23%; margin: 0 1%;">16 light rays: noise is significantly reduced in soft shadows</div>
+		<div style="width: 23%; margin: 0 1%;">64 light rays: almost no noise</div>
+		</div>
+
+		<p>
+			Uniform hemisphere sampling tends to produce noisier and less efficient results compared to lighting (importance) sampling, especially in scenes with small or few light sources. Since it samples directions blindly across the entire hemisphere, many rays miss the lights completely and contribute nothing to the final image, which leads to a grainy appearance unless a very high number of samples is used. Lighting sampling, on the other hand, focuses sample directions toward actual light sources, so more of the samples contribute meaningful lighting information. This leads to cleaner, more accurate results with fewer samples, especially when dealing with area lights or scenes where indirect paths to the lights are less likely to be randomly hit.
+		</p>
+		 Images rendered with global (direct and indirect) illumination (1024 samples per pixel, Number of samples per area of light is 1, Depth per ray of light is 5)
+		
+		 <div style="display: flex; justify-content: space-between; gap: 20px;">
+		<!-- Left: Bunny -->
+		<div style="width: 48%; text-align: center;">
+			<p style="margin-bottom: 10px;">
+			1024 global illumination bunny
+			</p>
+			<img src="isaiahadd.png" style="width: 100%; border: 2px solid black;" >
+		</div>
+
+		<!-- Right: Spheres -->
+		<div style="width: 48%; text-align: center;">
+			<p style="margin-bottom: 10px;">
+			1024 global illumination spheres
+			</p>
+			<img src="isaiahadd1.png" style="width: 100%; border: 2px solid black;">
+		</div>
+		</div>
+
+		<br> <br><br>
+		<p> Comparison of rendered views first with only direct illumination, then only indirect illumination (1024 samples per pixel)</p>
+		<div style="display: flex; justify-content: space-between; gap: 20px;">
+		<!-- Left: Bunny -->
+		<div style="width: 48%; text-align: center;">
+			<p style="margin-bottom: 10px;">
+			Only direct illumination
+			</p>
+			<img src="isaiahadd3.png" style="width: 100%; border: 2px solid black;" >
+		</div>
+
+		<!-- Right: Spheres -->
+		<div style="width: 48%; text-align: center;">
+			<p style="margin-bottom: 10px;">
+			Only indirect illumination
+			</p>
+			<img src="isaiahadd4.png" style="width: 100%; border: 2px solid black;">
+		</div>
+		</div>
+		
+		<br> <br><br>
+
+
+		<style>
+		table {
+			width: 100%;
+			table-layout: fixed;
+			border-collapse: collapse;
+		}
+		th, td {
+			width: 14.28%;
+			text-align: center;
+			vertical-align: middle;
+			border: 1px solid #444;
+			font-family: sans-serif;
+		}
+		img {
+			width: 100%;
+			height: auto;
+			display: block;
+		}
+		</style>
+
+		<table>
+		<tr>
+			<th></th>
+			<th>max_ray_<br>depth = 0</th>
+			<th>max_ray_<br>depth = 1</th>
+			<th>max_ray_<br>depth = 2</th>
+			<th>max_ray_<br>depth = 3</th>
+			<th>max_ray_<br>depth = 4</th>
+			<th>max_ray_<br>depth = 5</th>
+		</tr>
+		<tr>
+			<td>isAccumBounces = false</td>
+			<td><img src="bunny0.png" alt="bunny0"></td>
+			<td><img src="bunny1.png" alt="bunny1"></td>
+			<td><img src="bunny2.png" alt="bunny2"></td>
+			<td><img src="bunny3.png" alt="bunny3"></td>
+			<td><img src="bunny4.png" alt="bunny4"></td>
+			<td><img src="bunny5.png" alt="bunny5"></td>
+		</tr>
+		<tr>
+			<td>isAccumBounces = true</td>
+			<td><img src="bunny0a.png" alt="bunny0a"></td>
+			<td><img src="bunny1a.png" alt="bunny1a"></td>
+			<td><img src="bunny2a.png" alt="bunny2a"></td>
+			<td><img src="bunny3a.png" alt="bunny3a"></td>
+			<td><img src="bunny4a.png" alt="bunny4a"></td>
+			<td><img src="bunny5a.png" alt="bunny5a"></td>
+		</tr>
+		</table>
+
+
+		<br> <br><br>
+
+		<p> 
+		When rendering CBbunny.dae with <code>max_ray_depth  </code>set to 0 through 5 and isAccumBounces set to false, each image shows only the m-th bounce of light. At the second bounce count, light has already reflected off one surface before bouncing again and reaching the camera, adding subtle details like soft shadows, indirect illumination in corners, etc. At the third bounce, the image becomes noticeably darker, because after two reflections, the contribution of light of the third bounce is weaker. Compared to rasterization, which doesn’t simulate any of this indirect light, even the darker third bounce adds realism by capturing subtle lighting behavior that makes the scene feel more natural.</p>
+
+		<p> Russian Roulette Rendering: For CBbunny.dae, output the Russian Roulette rendering with <code> max_ray_depth</code> set to 0, 1, 2, 3, 4, and 100(the -m flag). Use 1024 samples per pixel:
+		</p>
+
+		<style>
+		table {
+			width: 100%;
+			table-layout: fixed;
+			border-collapse: collapse;
+		}
+		th, td {
+			width: 14.28%;
+			text-align: center;
+			vertical-align: middle;
+			border: 1px solid #444;
+			font-family: sans-serif;
+		}
+		img {
+			width: 100%;
+			height: auto;
+			display: block;
+		}
+		</style>
+
+		<table>
+		<tr>
+			<th>max_ray_<br>depth = 0</th>
+			<th>max_ray_<br>depth = 1</th>
+			<th>max_ray_<br>depth = 2</th>
+			<th>max_ray_<br>depth = 3</th>
+			<th>max_ray_<br>depth = 4</th>
+			<th>max_ray_<br>depth = 100</th>
+		</tr>
+		<tr>
+			<td><img src="bunny0r.png" alt="bunny0r"></td>
+			<td><img src="bunny1r.png" alt="bunny1r"></td>
+			<td><img src="bunny2r.png" alt="bunny2r"></td>
+			<td><img src="bunny3r.png" alt="bunny3r"></td>
+			<td><img src="bunny4r.png" alt="bunny4r"></td>
+			<td><img src="bunny100r.png" alt="bunny100r"></td>
+		</tr>
+		</table>
+		
+		<p> Pick one scene and compare rendered views with various sample-per-pixel rates, including at least 1, 2, 4, 8, 16, 64, and 1024. Use 4 light rays:</p>
+		<style>
+		table {
+			width: 100%;
+			table-layout: fixed;
+			border-collapse: collapse;
+		}
+		th, td {
+			width: 14.28%; /* 100 / 7 columns */
+			text-align: center;
+			vertical-align: middle;
+			border: 1px solid #444;
+			font-family: sans-serif;
+		}
+		img {
+			width: 100%;
+			height: auto;
+			display: block;
+		}
+		</style>
+
+		<table>
+		<tr>
+			<th>samples<br>per pixel = 1</th>
+			<th>samples<br>per pixel = 2</th>
+			<th>samples<br>per pixel = 4</th>
+			<th>samples<br>per pixel = 8</th>
+			<th>samples<br>per pixel = 16</th>
+			<th>samples<br>per pixel = 64</th>
+			<th>samples<br>per pixel = 1024</th>
+		</tr>
+		<tr>
+			<td><img src="dragon1.png" alt="dragon1"></td>
+			<td><img src="dragon2.png" alt="dragon2"></td>
+			<td><img src="dragon4.png" alt="dragon4"></td>
+			<td><img src="dragon8.png" alt="dragon8"></td>
+			<td><img src="dragon16.png" alt="dragon16"></td>
+			<td><img src="dragon64.png" alt="dragon64"></td>
+			<td><img src="dragon1024.png" alt="dragon1024"></td>
+		</tr>
+		</table>
+
+
 
 		<h2>Part 4: Global Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+		<p> The <code> at_least_one_bounce_radiance </code> function estimates indirect lighting by recursively bouncing rays through the scene. It first adds direct lighting if needed, then samples the BSDF to get a new direction. A new ray is traced from the intersection point, and if it hits something, the function calls itself again to get the incoming radiance. The result is scaled using the BSDF, cosine term, and PDF. If the ray misses and there's an environment light, it samples that instead. Russian roulette is used to probabilistically end paths and keep the computation efficient.</p>
 		<h2>Part 5: Adaptive Sampling</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
