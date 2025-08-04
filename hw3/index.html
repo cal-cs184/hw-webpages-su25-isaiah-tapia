@@ -169,6 +169,18 @@ auto partition_iter = std::partition(start, end, [axis, mid](Primitive* p) {
 					<figcaption>Max Planck rendered with BBoxes</figcaption>
 				</figure>
 			</div>
+
+			<p>
+				We noticed that these images with bounding boxes implemented could be rendered at a speed that is significantly
+				faster than they could before. For instance, the Max Planck image took less than 3 seconds to render while
+				prior to implementing bounding boxes we were unable to render the image. The dragon within the
+				cornell box rendered in two seconds while prior to bound box the image took me nearly 15 minutes to render
+				and it had looked odd.
+			</p>
+			<div style="width: 100%">
+				Dragon Before
+				<img src="new_images/CBdragon.png" style="width: 30%">
+			</div>
 		<h2>Part 3: Direct Illumination</h2>
 		The two direct lighting functions, <code> estimate_direct_lighting_hemisphere</code> and <code>estimate_direct_lighting_importance</code> both try to figure out how much light hits a point on a surface, but go about it in different ways.
 		<br>		<br>
